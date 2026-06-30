@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ProductivityTime</title>
+    <meta name="theme-color" content="#050a06" />
+    <link rel="manifest" href="manifest.json" />
+    <link rel="icon" href="icons/icon-round3-192.png" />
+    <link rel="apple-touch-icon" href="icons/icon-round3-192.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="ProductivityTime" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <div>
+          <h1>Startup Track</h1>
+          <p id="summary">Loading goals...</p>
+        </div>
+        <div class="actions">
+          <span id="whoami" class="whoami"></span>
+          <span id="liveIndicator" class="liveIndicator" hidden>● live</span>
+          <button id="lockButton" title="Lock / switch founder">lock</button>
+          <button id="refreshButton" title="Reload now (auto-sync is live; this is just a manual nudge)">refresh</button>
+        </div>
+      </header>
+
+      <nav class="tabs primaryTabs" aria-label="App sections">
+        <button class="tab appTab active" data-page="goals">Goals</button>
+        <button class="tab appTab" data-page="completed">Completed</button>
+        <button class="tab appTab" data-page="calendar">Calendar</button>
+        <button class="tab appTab" data-page="ideas">Ideas</button>
+        <button class="tab appTab" data-page="questions">Questions</button>
+        <button class="tab appTab" data-page="changes">Changes</button>
+        <button class="tab appTab" data-page="settings">Settings</button>
+      </nav>
+
+      <div id="mainView">
+      <p id="identityBanner" class="identityBanner" hidden></p>
+
+      <section id="requirementsSection">
+        <h2 class="sectionTitle">Daily Momentum</h2>
+        <div id="requirementsBoard" class="reqBoard"></div>
+      </section>
+
+      <section id="outputSection">
+        <div class="panelHead">
+          <h2 class="sectionTitle">Today's Required Output</h2>
+          <button id="copyAccountabilityPrompt" class="ghostButton" title="Copy a team accountability summary to paste into Claude or Codex">Copy accountability prompt</button>
+        </div>
+        <div id="outputStatusStrip" class="statusStrip"></div>
+        <p id="outputSummary" class="muted"></p>
+        <section class="composer outputComposer" aria-label="Post today's output">
+          <p id="outputAs" class="outputAs muted"></p>
+          <div class="formGrid">
+            <label>Output type <input id="outputType" list="outputTypeList" placeholder="idea, goal, thought…" autocomplete="off" /></label>
+            <label>Status
+              <select id="outputStatus">
+                <option value="none" selected>None</option>
+                <option value="not_started">Not started</option>
+                <option value="in_progress">In progress</option>
+                <option value="shipped">Shipped</option>
+              </select>
+            </label>
+          </div>
+          <span class="fieldCaption">Title</span>
+          <input id="outputDesc" placeholder="An idea, goal, or thought…" autocomplete="off" />
+          <span class="fieldCaption">Information</span>
+          <textarea id="outputNotes" rows="2" placeholder="More detail (optional)"></textarea>
+          <button id="addOutputButton">Post output</button>
+        </section>
+        <div id="outputList" class="outputList" aria-live="polite"></div>
+      </section>
+
+      <section id="goalsSection">
+      <h2 class="sectionTitle">Goals</h2>
+      <section class="composer" aria-label="Add goal">
+        <input id="titleInput" placeholder="Goal for today" autocomplete="off" />
+        <div class="formGrid">
+          <label>
+            Date
+            <input id="dateInput" type="date" />
+          </label>
+          <label>
+            Time
+            <input id="timeInput" type="time" />
+          </label>
+          <label>
+            Time zone
+            <input id="timezoneInput" list="timezoneList" placeholder="e.g. Asia/Tokyo" autocomplete="off" />
+          </label>
+          <label>
+            Areas
+            <div id="areaInput" class="multiSelect" data-placeholder="Choose areas"></div>
+          </label>
+          <label>
+            Assignees
+            <div id="assigneesInput" class="multiSelect" data-placeholder="Choose people"></div>
+          </label>
+        </div>
+        <textarea id="notesInput" rows="3" placeholder="Notes"></textarea>
+        <button id="addButton">Add Goal</button>
+      </section>
+
+      <section id="goalList" class="goalList" aria-live="polite"></section>
+      </section>
+
+      <section id="completedSection">
+        <h2 class="sectionTitle">Completed</h2>
+        <section id="completedList" class="goalList" aria-live="polite"></section>
+      </section>
+
+      <section id="ideasSection">
+        <h2 class="sectionTitle">Ideas</h2>
+        <section class="focusCard">
+          <div class="panelHead">
+            <h2>Daily Focus</h2>
+            <button id="copyFocusPrompt" class="ghostButton" title="Copy a prompt to paste into your Claude Code / Codex agent">Copy refresh prompt</button>
+          </div>
+          <div id="focusBody"></div>
+        </section>
+
+        <section class="composer" aria-label="Capture idea">
+          <textarea id="ideaInput" rows="2" placeholder="Brain-dump an idea, a reminder, or something to think about..."></textarea>
+          <button id="addIdeaButton">Add Idea</button>
+        </section>
+
+        <div class="panelHead">
+          <h2>Ideas Inbox</h2>
+          <button id="copyTriagePrompt" class="ghostButton" title="Copy a triage prompt to paste into your Claude Code / Codex agent">Copy triage prompt</button>
+        </div>
+        <p id="ideasSummary" class="muted"></p>
+        <section id="ideaList" class="ideaList" aria-live="polite"></section>
+      </section>
+
+      <section id="calendarSection">
+        <h2 class="sectionTitle">Calendar — week ahead</h2>
+        <p class="muted">Propose a meeting time for each day in plain words (e.g. "9PM CST"). The others click Agree. When all three agree, that day's meeting is locked.</p>
+        <p id="calendarSummary" class="muted"></p>
+        <div id="calendarList" class="calendarList"></div>
+      </section>
+
+      <section id="questionsSection">
+        <h2 class="sectionTitle">Questions</h2>
+        <section class="composer questionComposer" aria-label="Ask a question">
+          <label class="fieldCaption" for="questionTopic">Topic</label>
+          <input id="questionTopic" placeholder="What is this about? (e.g. Pricing, Hiring)" autocomplete="off" />
+          <label class="fieldCaption" for="questionText">Question</label>
+          <textarea id="questionText" rows="2" placeholder="Ask the team a question to debate…"></textarea>
+          <button id="addQuestionButton">Add Question</button>
+        </section>
+        <p id="questionsSummary" class="muted"></p>
+        <div id="questionList" class="questionList" aria-live="polite"></div>
+      </section>
+
+      <section id="activitySection">
+        <h2 class="sectionTitle">Activity</h2>
+        <div id="activityFeed" class="activityFeed" aria-live="polite"></div>
+      </section>
+      </div>
+
+      <section id="settingsSection" class="settings" hidden>
+        <section class="settingsPanel">
+          <h2>This device</h2>
+          <p>Pick who is using this Mac. Your acknowledgements and outputs post as this person. Stored locally, not synced.</p>
+          <label class="field"><span>This device is</span>
+            <select id="currentUserSelect"></select>
+          </label>
+        </section>
+
+        <div class="settingsGrid">
+          <section class="settingsPanel">
+            <h2>Team Members</h2>
+            <p>Edit the names your team and AI agents can assign to goals.</p>
+            <div id="teamEditor" class="pillEditor"></div>
+            <form id="teamForm" class="inlineForm">
+              <input id="teamNameInput" placeholder="New member name" />
+              <button>Add</button>
+            </form>
+          </section>
+
+          <section class="settingsPanel">
+            <h2>Goal Areas</h2>
+            <p>Areas group daily goals by startup workstream.</p>
+            <div id="areaEditor" class="pillEditor"></div>
+            <form id="areaForm" class="inlineForm">
+              <input id="areaNameInput" placeholder="New area" />
+              <button>Add</button>
+            </form>
+          </section>
+        </div>
+
+        <section class="settingsPanel">
+          <h2>Team Timezones</h2>
+          <p>Set each person's home timezone so goal time slots show in everyone's local time.</p>
+          <div id="timezoneEditor" class="pillEditor"></div>
+        </section>
+
+        <section class="settingsPanel">
+          <h2>GitHub connection</h2>
+          <p>This app saves straight to your private GitHub repo. Paste a personal access token with read + write access to it. It's stored only on this device, never shared.</p>
+          <form id="tokenForm" class="inlineForm">
+            <input id="tokenInput" type="password" placeholder="GitHub token (ghp_… or github_pat_…)" autocomplete="off" spellcheck="false" />
+            <button>Save token</button>
+          </form>
+          <p id="tokenStatus" class="muted"></p>
+        </section>
+
+        <section class="settingsPanel" hidden>
+          <h2>GitHub Sync</h2>
+          <p id="repoSummary">Not connected yet.</p>
+          <label class="toggleRow">
+            <input type="checkbox" id="autoSyncToggle" />
+            <span>Live auto-sync — push changes and pull teammates every few seconds</span>
+          </label>
+          <form id="repoForm" class="repoForm">
+            <label>
+              Repository URL
+              <input id="repoUrlInput" placeholder="https://github.com/your-team/startup-track.git" />
+            </label>
+            <label>
+              Branch
+              <input id="branchInput" placeholder="main" />
+            </label>
+            <label>
+              Git name
+              <input id="gitNameInput" placeholder="Your name" />
+            </label>
+            <label>
+              Git email
+              <input id="gitEmailInput" placeholder="you@example.com" />
+            </label>
+            <button>Connect GitHub</button>
+          </form>
+        </section>
+      </section>
+    </main>
+
+    <div id="loginOverlay" class="loginOverlay" hidden>
+      <div class="loginBox">
+        <p class="loginTitle">ProductivityTime</p>
+        <p class="loginPrompt">$ who are you?</p>
+        <select id="loginName" class="loginName">
+          <option value="">— choose your name —</option>
+          <option value="Sami">Sami</option>
+          <option value="Reyan">Reyan</option>
+          <option value="Ahnaf">Ahnaf</option>
+        </select>
+        <input id="loginToken" type="password" placeholder="GitHub token (first time on this device only)" autocomplete="off" autocapitalize="off" spellcheck="false" />
+        <button id="loginButton">&gt; access</button>
+        <p id="loginError" class="loginError"></p>
+        <p class="loginHint muted">security is your GitHub account — only the 3 founders' accounts work. your token is stored only on this device.</p>
+      </div>
+    </div>
+
+    <div id="viewModal" class="modal" hidden>
+      <div class="modalBackdrop" data-close></div>
+      <div class="modalCard" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <div class="modalHead">
+          <span id="modalTitle" class="modalTitle">Details</span>
+          <button class="modalClose" data-close aria-label="Close">×</button>
+        </div>
+        <div id="modalBody" class="modalBody"></div>
+        <div class="modalFoot">
+          <button class="modalCloseBtn" data-close>Close</button>
+        </div>
+      </div>
+    </div>
+
+    <datalist id="areasList"></datalist>
+    <datalist id="teamList"></datalist>
+    <datalist id="timezoneList"></datalist>
+    <datalist id="outputTypeList"></datalist>
+
+    <template id="goalTemplate">
+      <article class="goal">
+        <textarea class="goalTitle" rows="1" placeholder="Goal title"></textarea>
+        <div class="staleLabels"></div>
+        <div class="goalGrid">
+          <div class="goalMain">
+            <label class="field"><span>Notes</span><textarea class="goalNotes" rows="2"></textarea></label>
+            <div class="goalTimes"></div>
+          </div>
+          <div class="goalMeta">
+            <label class="field"><span>Date</span><input class="goalDate" type="date" /></label>
+            <label class="field"><span>Time</span><input class="goalTime" type="time" /></label>
+            <label class="field"><span>Time zone</span><input class="goalTimezone" list="timezoneList" placeholder="e.g. Asia/Tokyo" autocomplete="off" /></label>
+            <div class="field"><span>Areas</span><div class="goalArea multiSelect" data-placeholder="Choose areas"></div></div>
+            <div class="field"><span>Assignees</span><div class="goalAssignees multiSelect" data-placeholder="Choose people"></div></div>
+          </div>
+        </div>
+        <div class="goalActions">
+          <button class="saveGoal">Save</button>
+          <button class="completeGoal">Complete</button>
+          <button class="deleteGoal">Delete</button>
+        </div>
+        <div class="interactionRow"></div>
+        <div class="quickActions"></div>
+        <div class="repliesBox"></div>
+      </article>
+    </template>
+
+    <template id="questionTemplate">
+      <article class="question">
+        <div class="questionTop">
+          <span class="questionTopic"></span>
+          <span class="questionAuthor muted"></span>
+          <div class="questionActions">
+            <button class="deleteQuestion deleteGoal">Delete</button>
+          </div>
+        </div>
+        <p class="questionText"></p>
+        <div class="questionReplies"></div>
+      </article>
+    </template>
+
+    <template id="ideaTemplate">
+      <article class="idea">
+        <div class="ideaTop">
+          <span class="ideaStatus"></span>
+          <span class="ideaAuthor muted"></span>
+          <div class="ideaActions">
+            <button class="promoteIdea">Make it a goal</button>
+            <button class="archiveIdea">Archive</button>
+            <button class="deleteIdea deleteGoal">Delete</button>
+          </div>
+        </div>
+        <div class="staleLabels"></div>
+        <p class="ideaText"></p>
+        <div class="ideaTriage" hidden></div>
+        <div class="interactionRow"></div>
+        <div class="quickActions"></div>
+        <div class="repliesBox"></div>
+      </article>
+    </template>
+
+    <script src="store.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
